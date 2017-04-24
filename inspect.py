@@ -6,36 +6,40 @@ from time import sleep
 import sys
 
 chrome_path = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
-log_file = open('log','w')
+log_file = open('log', 'w')
 
 
 def log(message):
     print(message)
     print(message, file=log_file)
 
+def chunks(l, n):
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
-start_at = 1
-delay = 15
+delay = 60
 
 c = defaultdict(int)
 count = 0
 with open('data/threats-merged.csv', 'r') as file:
-    for line in file:
+    lines = file.readlines()
+    for line_group in chunks(lines, 6):
         try:
             # open url
-            url = line.split(';')[0]
-            threat_type = line.split(';')[1]
-            if c[url] > 0 or threat_type == 'SOCIAL_ENGINEERING':
-                continue
-            c[url] += 1
-            count += 1
-            if count < start_at:
-                continue
-            log("{}: {}".format(count, url))
-            proc = Popen([chrome_path, '--disable-web-security', url])
+            proc_list = []
+            for line in line_group:
+                url = line.split(';')[0]
+                threat_type = line.split(';')[1]
+                if c[url] > 0 or threat_type == 'SOCIAL_ENGINEERING':
+                    continue
+                c[url] += 1
+                count += 1
+                log("{}: {}".format(count, url))
+                proc_list.append(Popen([chrome_path, '--disable-web-security', url]))
             # wait for malware download
             sleep(delay)
             # kill browser
-            proc.kill()
+            for proc in proc_list:
+                proc.kill()
         except Exception as e:
             print(e, file=sys.stderr)
