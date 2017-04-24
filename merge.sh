@@ -24,11 +24,14 @@ first=true
 for current in threats*; do
   if $first; then
     first=false
-    cat $current > $threats_merged
+    tail -n +2 $current > $threats_merged
   else
-    comm -12 <(sort $threats_merged) <(sort $current) > $tmp_file
+    headless_list=mktemp
+    tail -n +2 $current > $headless_list
+    comm -12 <(sort $threats_merged) <(sort $headless_list) > $tmp_file
     cat $tmp_file > $threats_merged
   fi
 done
+rm $headless_list
 
 rm $tmp_file
