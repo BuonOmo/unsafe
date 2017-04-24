@@ -4,8 +4,10 @@ from collections import defaultdict
 from subprocess import Popen
 from time import sleep
 
+
 chrome_path = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 
+start_at=1
 delay=15
 
 c = defaultdict(int)
@@ -19,8 +21,10 @@ with open('data/threats-merged.csv', 'r') as file:
             continue
         c[url] += 1
         count += 1
-        print "%d: %s".format(count, url)
-        proc = Popen([chrome_path, '--disable-web-security', url]
+        if count < start_at:
+            continue
+        print "{}: {}".format(count, url)
+        proc = Popen([chrome_path, '--disable-web-security', url])
         # wait for malware download
         sleep(delay)
         # kill browser
